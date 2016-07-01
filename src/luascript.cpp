@@ -42,6 +42,7 @@ extern Monsters g_monsters;
 extern ConfigManager g_config;
 extern Vocations g_vocations;
 extern Spells* g_spells;
+extern Actions* g_actions;
 
 enum {
 	EVENT_ID_LOADING = 1,
@@ -2533,6 +2534,12 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Party", "isSharedExperienceEnabled", LuaScriptInterface::luaPartyIsSharedExperienceEnabled);
 	registerMethod("Party", "shareExperience", LuaScriptInterface::luaPartyShareExperience);
 	registerMethod("Party", "setSharedExperience", LuaScriptInterface::luaPartySetSharedExperience);
+
+    // ActionScript
+    registerClass("ActionScript", "", LuaScriptInterface::luaCreateActionScript);
+    registerMetaMethod("ActionScript", "__gc", LuaScriptInterface::luaDeleteActionScript);
+    registerMethod("ActionScript", "delete", LuaScriptInterface::luaDeleteActionScript);
+    registerMethod("ActionScript", "register", LuaScriptInterface::luaActionScriptRegister);
 }
 
 #undef registerEnum
@@ -12059,6 +12066,58 @@ int LuaScriptInterface::luaPartySetSharedExperience(lua_State* L)
 		lua_pushnil(L);
 	}
 	return 1;
+}
+
+// ActionScript()
+int LuaScriptInterface::luaCreateActionScript(lua_State* L)
+{
+    Action* action = new Action(getScriptEnv()->getScriptInterface());
+    if(action) {
+        pushUserdata<Action>(L, action);
+        setMetatable(L, -1, "ActionScript");
+    }
+    else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int LuaScriptInterface::luaDeleteActionScript(lua_State* L)
+{
+    // action:delete() action:__gc()
+    Action** actionsPtr = getRawUserdata<Action>(L, 1);
+    if(actionsPtr && *actionsPtr) {
+        delete *actionsPtr;
+        *actionsPtr = nullptr;
+    }
+    return 0;
+}
+
+int LuaScriptInterface::luaActionScriptRegister(lua_State* L)
+{
+    // action:register(itemid, callback)
+	const std::string& callbackName = getString(L, 3);
+    int32_t itemid = getNumber<int32_t>(L, 2);
+    Action* action = getUserdata<Action>(L, 1);
+    if(action) {
+        if(!action->hasScriptId()) {
+            action->setAllowFarUse(false);
+            action->setCheckLineOfSight(true);
+            action->setCheckFloor(true);
+
+            if(!action->loadCallback(callbackName, getScriptEnv()->getScriptInterface())) {
+                pushBoolean(L, false);
+                std::cout << "[action:register] Failed to load callback" << std::endl;
+                return 1;
+            }
+
+            pushBoolean(L, g_actions->registerItemID(itemid, action));
+        }
+    }
+    else {
+        lua_pushnil(L);
+    }
+    return 1;
 }
 
 //

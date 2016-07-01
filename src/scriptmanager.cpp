@@ -29,6 +29,7 @@
 #include "weapons.h"
 #include "globalevent.h"
 #include "events.h"
+#include "script.h"
 
 Actions* g_actions = nullptr;
 CreatureEvents* g_creatureEvents = nullptr;
@@ -39,6 +40,7 @@ Spells* g_spells = nullptr;
 TalkActions* g_talkActions = nullptr;
 MoveEvents* g_moveEvents = nullptr;
 Weapons* g_weapons = nullptr;
+Scripts* g_scripts = nullptr;
 
 extern LuaEnvironment g_luaEnvironment;
 
@@ -117,6 +119,12 @@ bool ScriptingManager::loadScriptSystems()
 		std::cout << "> ERROR: Unable to load events!" << std::endl;
 		return false;
 	}
+
+    g_scripts = new Scripts();
+    if(!g_scripts->loadScripts("scripts")) {
+        std::cout << "> ERROR: Unable to load scripts!" << std::endl;
+        return false;
+    }
 
 	return true;
 }

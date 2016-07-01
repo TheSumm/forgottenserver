@@ -1239,6 +1239,11 @@ class LuaScriptInterface
 		static int luaPartyShareExperience(lua_State* L);
 		static int luaPartySetSharedExperience(lua_State* L);
 
+        // Actions
+		static int luaCreateActionScript(lua_State* L);
+        static int luaDeleteActionScript(lua_State* L);
+        static int luaActionScriptRegister(lua_State* L);
+
 		//
 		lua_State* luaState;
 		std::string lastLuaError;
