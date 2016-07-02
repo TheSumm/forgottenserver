@@ -211,6 +211,7 @@ class LuaScriptInterface
 		int32_t loadFile(const std::string& file, Npc* npc = nullptr);
 
 		const std::string& getFileById(int32_t scriptId);
+        int32_t getEvent();
 		int32_t getEvent(const std::string& eventName);
 		int32_t getMetaEvent(const std::string& globalName, const std::string& eventName);
 
@@ -1242,6 +1243,7 @@ class LuaScriptInterface
         // Actions
 		static int luaCreateActionScript(lua_State* L);
         static int luaDeleteActionScript(lua_State* L);
+        static int luaActionScriptOnUse(lua_State* L);
         static int luaActionScriptRegister(lua_State* L);
 
 		//

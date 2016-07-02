@@ -33,7 +33,7 @@ class Event
 
 		bool checkScript(const std::string& basePath, const std::string& scriptsName, const std::string& scriptFile) const;
 		bool loadScript(const std::string& scriptFile);
-        bool loadCallback(const std::string& scriptFile, LuaScriptInterface* interface);
+        bool loadCallback();
 		virtual bool loadFunction(const pugi::xml_attribute&) {
 			return false;
 		}
@@ -41,9 +41,6 @@ class Event
 		bool isScripted() const {
 			return scripted;
 		}
-        bool hasScriptId() {
-            return scriptId != 0;
-        }
 
 	protected:
 		virtual std::string getScriptEventName() const = 0;

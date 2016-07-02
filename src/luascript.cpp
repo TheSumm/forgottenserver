@@ -363,6 +363,29 @@ int32_t LuaScriptInterface::getEvent(const std::string& eventName)
 	return runningEventId++;
 }
 
+int32_t LuaScriptInterface::getEvent()
+{
+    //check if function is on the stack
+    if(!isFunction(luaState, -1)) {
+        return -1;
+    }
+
+    //get our events table
+    lua_rawgeti(luaState, LUA_REGISTRYINDEX, eventTableRef);
+    if(!isTable(luaState, -1)) {
+        lua_pop(luaState, 1);
+        return -1;
+    }
+
+    //save in our events table
+    lua_pushvalue(luaState, -2);
+    lua_rawseti(luaState, -2, runningEventId);
+    lua_pop(luaState, 2);
+
+    cacheFiles[runningEventId] = loadingFile + ":callback";
+    return runningEventId++;
+}
+
 int32_t LuaScriptInterface::getMetaEvent(const std::string& globalName, const std::string& eventName)
 {
 	//get our events table
@@ -2538,6 +2561,7 @@ void LuaScriptInterface::registerFunctions()
     // ActionScript
     registerClass("ActionScript", "", LuaScriptInterface::luaCreateActionScript);
     registerMetaMethod("ActionScript", "__gc", LuaScriptInterface::luaDeleteActionScript);
+    registerMethod("ActionScript", "onUse", LuaScriptInterface::luaActionScriptOnUse);
     registerMethod("ActionScript", "delete", LuaScriptInterface::luaDeleteActionScript);
     registerMethod("ActionScript", "register", LuaScriptInterface::luaActionScriptRegister);
 }
@@ -12093,26 +12117,40 @@ int LuaScriptInterface::luaDeleteActionScript(lua_State* L)
     return 0;
 }
 
+int LuaScriptInterface::luaActionScriptOnUse(lua_State* L)
+{
+    // action:onUse(callback)
+    Action* action = getUserdata<Action>(L, 1);
+    if(action) {
+        if(!action->loadCallback()) {
+            pushBoolean(L, false);
+            return 1;
+        }
+        pushBoolean(L, true);
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
 int LuaScriptInterface::luaActionScriptRegister(lua_State* L)
 {
-    // action:register(itemid, callback)
-	const std::string& callbackName = getString(L, 3);
+    // action:register(itemid)
     int32_t itemid = getNumber<int32_t>(L, 2);
     Action* action = getUserdata<Action>(L, 1);
     if(action) {
-        if(!action->hasScriptId()) {
-            action->setAllowFarUse(false);
-            action->setCheckLineOfSight(true);
-            action->setCheckFloor(true);
-
-            if(!action->loadCallback(callbackName, getScriptEnv()->getScriptInterface())) {
-                pushBoolean(L, false);
-                std::cout << "[action:register] Failed to load callback" << std::endl;
-                return 1;
-            }
-
-            pushBoolean(L, g_actions->registerItemID(itemid, action));
+        if(!action->isScripted()) {
+            pushBoolean(L, false);
+            return 1;
         }
+
+        // These are default anyway, move them to
+        // action:setAllowFarUse, action:setCheckLineOfSight, action:setCheckFloor later
+        action->setAllowFarUse(false);
+        action->setCheckLineOfSight(true);
+        action->setCheckFloor(true);
+
+        pushBoolean(L, g_actions->registerItemID(itemid, action));
     }
     else {
         lua_pushnil(L);

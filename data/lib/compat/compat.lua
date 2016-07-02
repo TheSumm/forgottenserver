@@ -83,6 +83,18 @@ do
 	rawgetmetatable("Teleport").__index = ItemIndex
 end
 
+do
+	local function ActionScriptNewIndex(self, key, value)
+		if key == "onUse" then
+			print(self, key, value)
+			self:onUse(value)
+			return
+		end
+		rawset(self, key, value)
+	end
+	rawgetmetatable("ActionScript").__newindex = ActionScriptNewIndex
+end
+
 function pushThing(thing)
 	local t = {uid = 0, itemid = 0, type = 0, actionid = 0}
 	if thing ~= nil then
