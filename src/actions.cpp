@@ -84,6 +84,17 @@ Event* Actions::getEvent(const std::string& nodeName)
 	return new Action(&scriptInterface);
 }
 
+bool Actions::registerItemID(int32_t id, Event* event)
+{
+	Action* action = static_cast<Action*>(event); //event is guaranteed to be an Action
+
+	auto result = useItemMap.emplace(id, action);
+	if(!result.second) {
+		std::cout << "[Warning - Actions::registerEventByItemid] Duplicate registered item with id: " << id << std::endl;
+	}
+	return result.second;
+}
+
 bool Actions::registerEvent(Event* event, const pugi::xml_node& node)
 {
 	Action* action = static_cast<Action*>(event); //event is guaranteed to be an Action

@@ -42,6 +42,7 @@ extern Monsters g_monsters;
 extern ConfigManager g_config;
 extern Vocations g_vocations;
 extern Spells* g_spells;
+extern Actions* g_actions;
 
 enum {
 	EVENT_ID_LOADING = 1,
@@ -359,6 +360,29 @@ int32_t LuaScriptInterface::getEvent(const std::string& eventName)
 	lua_setglobal(luaState, eventName.c_str());
 
 	cacheFiles[runningEventId] = loadingFile + ":" + eventName;
+	return runningEventId++;
+}
+
+int32_t LuaScriptInterface::getEvent()
+{
+	//check if function is on the stack
+	if (!isFunction(luaState, -1)) {
+		return -1;
+	}
+
+	//get our events table
+	lua_rawgeti(luaState, LUA_REGISTRYINDEX, eventTableRef);
+	if (!isTable(luaState, -1)) {
+		lua_pop(luaState, 1);
+		return -1;
+	}
+
+	//save in our events table
+	lua_pushvalue(luaState, -2);
+	lua_rawseti(luaState, -2, runningEventId);
+	lua_pop(luaState, 2);
+
+	cacheFiles[runningEventId] = loadingFile + ":callback";
 	return runningEventId++;
 }
 
@@ -2533,6 +2557,13 @@ void LuaScriptInterface::registerFunctions()
 	registerMethod("Party", "isSharedExperienceEnabled", LuaScriptInterface::luaPartyIsSharedExperienceEnabled);
 	registerMethod("Party", "shareExperience", LuaScriptInterface::luaPartyShareExperience);
 	registerMethod("Party", "setSharedExperience", LuaScriptInterface::luaPartySetSharedExperience);
+
+	// ActionScript
+	registerClass("ActionScript", "", LuaScriptInterface::luaCreateActionScript);
+	registerMetaMethod("ActionScript", "__gc", LuaScriptInterface::luaDeleteActionScript);
+	registerMethod("ActionScript", "onUse", LuaScriptInterface::luaActionScriptOnUse);
+	registerMethod("ActionScript", "delete", LuaScriptInterface::luaDeleteActionScript);
+	registerMethod("ActionScript", "register", LuaScriptInterface::luaActionScriptRegister);
 }
 
 #undef registerEnum
@@ -12055,6 +12086,70 @@ int LuaScriptInterface::luaPartySetSharedExperience(lua_State* L)
 	Party* party = getUserdata<Party>(L, 1);
 	if (party) {
 		pushBoolean(L, party->setSharedExperience(party->getLeader(), active));
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+// ActionScript()
+int LuaScriptInterface::luaCreateActionScript(lua_State* L)
+{
+	Action* action = new Action(getScriptEnv()->getScriptInterface());
+	if(action) {
+		pushUserdata<Action>(L, action);
+		setMetatable(L, -1, "ActionScript");
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaDeleteActionScript(lua_State* L)
+{
+	// action:delete() action:__gc()
+	Action** actionsPtr = getRawUserdata<Action>(L, 1);
+	if (actionsPtr && *actionsPtr) {
+		delete *actionsPtr;
+		*actionsPtr = nullptr;
+	}
+	return 0;
+}
+
+int LuaScriptInterface::luaActionScriptOnUse(lua_State* L)
+{
+	// action:onUse(callback)
+	Action* action = getUserdata<Action>(L, 1);
+	if (action) {
+		if (!action->loadCallback()) {
+			pushBoolean(L, false);
+			return 1;
+		}
+		pushBoolean(L, true);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int LuaScriptInterface::luaActionScriptRegister(lua_State* L)
+{
+	// action:register(itemid)
+	int32_t itemid = getNumber<int32_t>(L, 2);
+	Action* action = getUserdata<Action>(L, 1);
+	if (action) {
+		if (!action->isScripted()) {
+			pushBoolean(L, false);
+			return 1;
+		}
+
+		// These are default anyway, move them to
+		// action:setAllowFarUse, action:setCheckLineOfSight, action:setCheckFloor later
+		action->setAllowFarUse(false);
+		action->setCheckLineOfSight(true);
+		action->setCheckFloor(true);
+
+		pushBoolean(L, g_actions->registerItemID(itemid, action));
 	} else {
 		lua_pushnil(L);
 	}

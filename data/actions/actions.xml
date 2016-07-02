@@ -24,8 +24,6 @@
 	<action itemid="3948" function="decreaseItemId" />
 	<action itemid="1479" function="increaseItemId" />
 	<action itemid="1480" function="decreaseItemId" />
-	<action itemid="1945" function="increaseItemId" />
-	<action itemid="1946" function="decreaseItemId" />
 	<action itemid="2037" function="increaseItemId" />
 	<action itemid="2038" function="decreaseItemId" />
 	<action itemid="2039" function="increaseItemId" />
