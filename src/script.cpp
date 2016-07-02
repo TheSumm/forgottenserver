@@ -25,38 +25,38 @@
 extern LuaEnvironment g_luaEnvironment;
 
 Scripts::Scripts() :
-    scriptInterface("Scripts Interface")
+	scriptInterface("Scripts Interface")
 {
-    scriptInterface.initState();
+	scriptInterface.initState();
 }
 
 Scripts::~Scripts()
 {
-    scriptInterface.reInitState();
+	scriptInterface.reInitState();
 }
 
 bool Scripts::loadScripts(std::string folderName)
 {
-    const auto dir = boost::filesystem::current_path() / "/data/" / folderName / "/";
-    if(!boost::filesystem::exists(dir) || !boost::filesystem::is_directory(dir)) {
-        std::cout << "[Warning - Scripts::loadScripts] Can not load folder 'scripts'." << std::endl;
-        return false;
-    }
+	const auto dir = boost::filesystem::current_path() / "/data/" / folderName / "/";
+	if(!boost::filesystem::exists(dir) || !boost::filesystem::is_directory(dir)) {
+		std::cout << "[Warning - Scripts::loadScripts] Can not load folder 'scripts'." << std::endl;
+		return false;
+	}
 
-    boost::filesystem::recursive_directory_iterator endit;
-    for(boost::filesystem::recursive_directory_iterator it(dir); it != endit; ++it) {
-        if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ".lua") {
-            const std::string scriptFile = it->path().string();
+	boost::filesystem::recursive_directory_iterator endit;
+	for(boost::filesystem::recursive_directory_iterator it(dir); it != endit; ++it) {
+		if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ".lua") {
+			const std::string scriptFile = it->path().string();
 
-            if(scriptInterface.loadFile(scriptFile) == -1) {
-                std::cout << "[Warning - Scripts::loadScripts] Can not load script. " << scriptFile << std::endl;
-                std::cout << scriptInterface.getLastLuaError() << std::endl;
-                return false;
-            }
+			if(scriptInterface.loadFile(scriptFile) == -1) {
+				std::cout << "[Warning - Scripts::loadScripts] Can not load script. " << scriptFile << std::endl;
+				std::cout << scriptInterface.getLastLuaError() << std::endl;
+				return false;
+			}
 
-            std::cout << "[Scripts::loadScripts] " << scriptFile << " successfully loaded." << std::endl;
-        }
-    }
+			std::cout << "[Scripts::loadScripts] " << scriptFile << " successfully loaded." << std::endl;
+		}
+	}
 
-    return true;
+	return true;
 }

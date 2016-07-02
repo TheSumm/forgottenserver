@@ -120,11 +120,11 @@ bool ScriptingManager::loadScriptSystems()
 		return false;
 	}
 
-    g_scripts = new Scripts();
-    if(!g_scripts->loadScripts("scripts")) {
-        std::cout << "> ERROR: Unable to load scripts!" << std::endl;
-        return false;
-    }
+	g_scripts = new Scripts();
+	if (!g_scripts->loadScripts("scripts")) {
+		std::cout << "> ERROR: Unable to load scripts!" << std::endl;
+		return false;
+	}
 
 	return true;
 }

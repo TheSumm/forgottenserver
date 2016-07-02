@@ -86,7 +86,6 @@ end
 do
 	local function ActionScriptNewIndex(self, key, value)
 		if key == "onUse" then
-			print(self, key, value)
 			self:onUse(value)
 			return
 		end

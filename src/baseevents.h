@@ -33,7 +33,7 @@ class Event
 
 		bool checkScript(const std::string& basePath, const std::string& scriptsName, const std::string& scriptFile) const;
 		bool loadScript(const std::string& scriptFile);
-        bool loadCallback();
+		bool loadCallback();
 		virtual bool loadFunction(const pugi::xml_attribute&) {
 			return false;
 		}

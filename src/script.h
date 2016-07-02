@@ -31,8 +31,8 @@ class Scripts
 
 		bool loadScripts(std::string folderName);
 
-    private:
-        LuaScriptInterface scriptInterface;
+	private:
+		LuaScriptInterface scriptInterface;
 };
 
 #endif

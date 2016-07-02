@@ -151,50 +151,21 @@ bool Event::loadScript(const std::string& scriptFile)
 
 bool Event::loadCallback()
 {
-    if(!scriptInterface || scriptId != 0) {
-        std::cout << "Failure: [Event::loadCallback] scriptInterface == nullptr. scriptid = " << scriptId << std::endl;
-        return false;
-    }
+	if (!scriptInterface || scriptId != 0) {
+		std::cout << "Failure: [Event::loadCallback] scriptInterface == nullptr. scriptid = " << scriptId << std::endl;
+		return false;
+	}
 
-    int32_t id = scriptInterface->getEvent();
-    if(id == -1) {
-        std::cout << "[Warning - Event::loadCallback] Event " << getScriptEventName() << " not found. " << std::endl;
-        return false;
-    }
+	int32_t id = scriptInterface->getEvent();
+	if (id == -1) {
+		std::cout << "[Warning - Event::loadCallback] Event " << getScriptEventName() << " not found. " << std::endl;
+		return false;
+	}
 
-    scripted = true;
-    scriptId = id;
-    return true;
+	scripted = true;
+	scriptId = id;
+	return true;
 }
-
-/*int32_t LuaScriptInterface::getEvent(const std::string& eventName)
-{
-    //get our events table
-    lua_rawgeti(luaState, LUA_REGISTRYINDEX, eventTableRef);
-    if(!isTable(luaState, -1)) {
-        lua_pop(luaState, 1);
-        return -1;
-    }
-
-    //get current event function pointer
-    lua_getglobal(luaState, eventName.c_str());
-    if(!isFunction(luaState, -1)) {
-        lua_pop(luaState, 2);
-        return -1;
-    }
-
-    //save in our events table
-    lua_pushvalue(luaState, -1);
-    lua_rawseti(luaState, -3, runningEventId);
-    lua_pop(luaState, 2);
-
-    //reset global value of this event
-    lua_pushnil(luaState);
-    lua_setglobal(luaState, eventName.c_str());
-
-    cacheFiles[runningEventId] = loadingFile + ":" + eventName;
-    return runningEventId++;
-}*/
 
 CallBack::CallBack()
 {
